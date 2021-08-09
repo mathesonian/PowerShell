@@ -516,6 +516,34 @@ Function Install-Automate {
         Write-Verbose "Downloading from (Old): $($DownloadPath)"
     }   
     Confirm-Automate -Silent -Verbose:$Verbose
+    
+    If (($Global:Automate.Service -eq 'Running') -and ($Global:Automate.ServerAddress -like "*$($Server)*") -and ($Global:Automate.LastStatus > 600) -and !($Force)) {
+        Try {
+            Write-Verbose "LTService service is Restarting"
+			Stop-Service LTService -ErrorAction Stop
+            Start-Service LTService -ErrorAction Stop
+        }
+        Catch {
+            Write-Verbose "LTService service Restart Failed"
+        }            
+        If (((Get-Service LTService).Status) -eq "Running") {
+            Write-Verbose "LTService was successfully Restarted"
+            Write-Verbose "Now waiting for the Automate Agent to attempt to check-in - Loop 10X"
+            $Count = 0
+            While ($Count -ne 10) {
+                $Count++
+                Start-Sleep 6
+                Confirm-Automate -Silent -Verbose:$Verbose
+                If ($Global:Automate.Online) {
+                    If (!$Silent) {Write-Host "LTService service was successfully Restarted"}                    
+                    Break
+                }
+            }# End While
+        } Else {
+            Write-Verbose "LTService service did not return to a running status"
+        }
+    }
+    
     If (($Global:Automate.Service -eq 'Stopped') -and ($Global:Automate.ServerAddress -like "*$($Server)*") -and !($Force)) {
         Try {
             Write-Verbose "LTService service is Stopped"
