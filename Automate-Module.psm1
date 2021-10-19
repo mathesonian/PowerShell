@@ -517,7 +517,7 @@ Function Install-Automate {
     }   
     Confirm-Automate -Silent -Verbose:$Verbose
     
-    If (($Global:Automate.Service -eq 'Running') -and ($Global:Automate.ServerAddress -like "*$($Server)*") -and ($Global:Automate.LastStatus > 600) -and !($Force)) {
+    If (($Global:Automate.Service -eq 'Running') -and ($Global:Automate.ServerAddress -like "*$($Server)*") -and ($Global:Automate.LastStatus -gt 600) -and !($Force)) {
         Try {
             Write-Verbose "LTService service is Restarting"
 			Stop-Service LTService -ErrorAction Stop
